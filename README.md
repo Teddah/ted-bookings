@@ -9,4 +9,5 @@ Se till att node är installerat
 - `npm install`
 - `npm start`
 
-öppna upp: http://localhost:3000
+Öppna upp: http://localhost:3000
+Admin användarnamn och lösenord: admin
