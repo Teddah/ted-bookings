@@ -41,7 +41,6 @@ function App() {
     }
     const storedBookings = sessionStorage.getItem("bookings");
     if (storedBookings) {
-      console.log("stored", storedBookings);
       setBookings(JSON.parse(storedBookings));
     }
   }, []);
@@ -72,7 +71,6 @@ function App() {
       { firstname, lastname, date, item },
     ];
     setBookings(updatedBookings);
-    console.log("state", bookings);
     sessionStorage.setItem(
       "bookings",
       JSON.stringify(updatedBookings)
