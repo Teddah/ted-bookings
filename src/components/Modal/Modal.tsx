@@ -1,23 +1,25 @@
-import * as React from "react";
+import { useState } from "react";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
-import DialogContentText from "@mui/material/DialogContentText";
 import DialogTitle from "@mui/material/DialogTitle";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import {
-  DatePicker,
-  LocalizationProvider,
-} from "@mui/x-date-pickers";
+import DatePicker from "react-datepicker";
 import { CottageItem } from "../App/App";
+import { Typography } from "@mui/material";
+import "react-datepicker/dist/react-datepicker.css";
 
 interface Modalprops {
   open: boolean;
   currentItem: CottageItem | null;
   handleOnClose: () => void;
-  handleBooking: (item: CottageItem) => void;
+  handleBooking: (
+    item: CottageItem,
+    firstname: string,
+    lastname: string,
+    date: Date | null
+  ) => void;
 }
 
 export default function Modal({
@@ -26,12 +28,29 @@ export default function Modal({
   handleOnClose,
   handleBooking,
 }: Modalprops) {
+  const [firstname, setFirstName] = useState("");
+  const [lastname, setLastname] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(
+    new Date()
+  );
+
+  const handleOnBooking = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!currentItem) return;
+
+    handleBooking(currentItem, firstname, lastname, selectedDate);
+    setFirstName("");
+    setLastname("");
+    setSelectedDate(new Date());
+  };
+
   return (
-    <div>
-      <Dialog open={open} onClose={handleOnClose}>
-        <DialogTitle>{currentItem?.name}</DialogTitle>
-        <DialogContent>
-          <DialogContentText>Boka din stuga osv</DialogContentText>
+    <Dialog open={open} onClose={handleOnClose}>
+      <DialogTitle>{currentItem?.name}</DialogTitle>
+      <DialogContent>
+        <Typography>Boka din stuga osv</Typography>
+        <form onSubmit={(e) => handleOnBooking(e)}>
           <TextField
             autoFocus
             required
@@ -41,6 +60,8 @@ export default function Modal({
             type="text"
             fullWidth
             variant="standard"
+            value={firstname}
+            onChange={(e) => setFirstName(e.target.value)}
           />
           <TextField
             required
@@ -50,31 +71,34 @@ export default function Modal({
             type="text"
             fullWidth
             variant="standard"
+            value={lastname}
+            onChange={(e) => setLastname(e.target.value)}
           />
-
-          <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DatePicker label="Välj ett datum" />
-          </LocalizationProvider>
-          <DialogContentText marginTop={4}>
+          {/* <label> */}
+          <Typography style={{ marginBottom: 6 }}>
+            Välj datum
+          </Typography>
+          <DatePicker
+            selected={selectedDate}
+            required
+            onChange={(date) => setSelectedDate(date)}
+          />
+          {/* </label> */}
+          <Typography marginTop={4}>
             Rum: {currentItem?.rooms}st
-          </DialogContentText>
-          <DialogContentText>
-            Sängar: {currentItem?.beds}st
-          </DialogContentText>
-          <DialogContentText marginTop={2}>
+          </Typography>
+          <Typography>Sängar: {currentItem?.beds}st</Typography>
+          <Typography marginTop={2}>
             Pris: {currentItem?.price}kr/natt
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleOnClose}>Avbryt</Button>
-          <Button
-            variant="outlined"
-            onClick={() => currentItem && handleBooking(currentItem)}
-          >
-            Boka
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </div>
+          </Typography>
+          <DialogActions>
+            <Button onClick={handleOnClose}>Avbryt</Button>
+            <Button variant="outlined" type="submit">
+              Boka
+            </Button>
+          </DialogActions>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

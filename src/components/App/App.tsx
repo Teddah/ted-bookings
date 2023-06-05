@@ -1,5 +1,7 @@
-import { Container, Typography } from "@mui/material";
+import { Container, Divider, Typography } from "@mui/material";
 import { useState } from "react";
+import { exampleData } from "../../exampleData";
+import AdminLogin from "../AdminLogin";
 import DetailedItemsList from "../DetailedItemsList";
 import Modal from "../Modal";
 import "./App.css";
@@ -13,45 +15,33 @@ export interface CottageItem {
   booked: boolean;
 }
 
+interface Booking {
+  firstname: string;
+  lastname: string;
+  date: Date | null;
+  item: CottageItem;
+}
+
 function App() {
-  const initialItems: CottageItem[] = [
-    {
-      id: 1,
-      name: "Stuga 1",
-      beds: 4,
-      rooms: 2,
-      price: 870,
-      booked: false,
-    },
-    {
-      id: 2,
-      name: "Stuga 2",
-      beds: 6,
-      rooms: 3,
-      price: 1089,
-      booked: false,
-    },
-    {
-      id: 3,
-      name: "Stuga 3 (xl)",
-      beds: 10,
-      rooms: 5,
-      price: 1895,
-      booked: false,
-    },
-  ];
   const [open, setOpen] = useState(false);
-  const [items, setItems] = useState<CottageItem[]>(initialItems);
+  const [items, setItems] = useState<CottageItem[]>(exampleData);
   const [currentItem, setCurrentItem] = useState<CottageItem | null>(
     null
   );
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  const handleBookingClick = (item: CottageItem) => {
+  const handleItemClick = (item: CottageItem) => {
     setOpen(true);
     setCurrentItem(item);
   };
 
-  const handleBooking = (item: CottageItem) => {
+  const handleBooking = (
+    item: CottageItem,
+    firstname: string,
+    lastname: string,
+    date: Date | null
+  ) => {
     setOpen(false);
 
     const updatedItems = items.map((prevItem) => {
@@ -61,24 +51,51 @@ function App() {
       return prevItem;
     });
     setItems(updatedItems);
+
+    setBookings((prev) => [
+      { firstname, lastname, date, item },
+      ...prev,
+    ]);
   };
-  const handleOnClose = () => {
-    setOpen(false);
-  };
+
   return (
     <div className="App">
       <Container>
         <Typography variant="h1">Ted Bookings</Typography>
-        <DetailedItemsList
-          items={items}
-          onClick={handleBookingClick}
-        />
+        <DetailedItemsList items={items} onClick={handleItemClick} />
         <Modal
           open={open}
-          handleOnClose={handleOnClose}
+          handleOnClose={() => setOpen(false)}
           handleBooking={handleBooking}
           currentItem={currentItem}
         />
+        {isAdmin && (
+          <div>
+            <Typography variant="h4" mb={2}>
+              Bokningar
+            </Typography>
+            {bookings.length ? (
+              bookings.map((booking) => (
+                <div
+                  key={booking.item.id}
+                  style={{ margin: "14px 0px" }}
+                >
+                  <Typography>Stuga: {booking?.item.name}</Typography>
+                  <Typography>
+                    Namn: {booking?.firstname} {booking?.lastname}
+                  </Typography>
+                  <Typography>
+                    Bokat datum: {booking?.date?.toLocaleDateString()}
+                  </Typography>
+                  <Divider />
+                </div>
+              ))
+            ) : (
+              <p>Inga bokningar...</p>
+            )}
+          </div>
+        )}
+        <AdminLogin setIsAdmin={setIsAdmin} isAdmin={isAdmin} />
       </Container>
     </div>
   );
