@@ -1,5 +1,5 @@
 import { Container, Divider, Typography } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { exampleData } from "../../exampleData";
 import AdminLogin from "../AdminLogin";
 import DetailedItemsList from "../DetailedItemsList";
@@ -31,6 +31,21 @@ function App() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  useEffect(() => {
+    const storageItems = sessionStorage.getItem("items");
+    if (storageItems) {
+      setItems(JSON.parse(storageItems));
+    } else {
+      sessionStorage.setItem("items", JSON.stringify(exampleData));
+      setItems(exampleData);
+    }
+    const storedBookings = sessionStorage.getItem("bookings");
+    if (storedBookings) {
+      console.log("stored", storedBookings);
+      setBookings(JSON.parse(storedBookings));
+    }
+  }, []);
+
   const handleItemClick = (item: CottageItem) => {
     setOpen(true);
     setCurrentItem(item);
@@ -51,18 +66,31 @@ function App() {
       return prevItem;
     });
     setItems(updatedItems);
-
-    setBookings((prev) => [
+    sessionStorage.setItem("items", JSON.stringify(updatedItems));
+    const updatedBookings = [
+      ...bookings,
       { firstname, lastname, date, item },
-      ...prev,
-    ]);
+    ];
+    setBookings(updatedBookings);
+    console.log("state", bookings);
+    sessionStorage.setItem(
+      "bookings",
+      JSON.stringify(updatedBookings)
+    );
   };
+
+  const storageItems = sessionStorage.getItem("items");
 
   return (
     <div className="App">
       <Container>
         <Typography variant="h1">Ted Bookings</Typography>
-        <DetailedItemsList items={items} onClick={handleItemClick} />
+        {storageItems && (
+          <DetailedItemsList
+            items={items}
+            onClick={handleItemClick}
+          />
+        )}
         <Modal
           open={open}
           handleOnClose={() => setOpen(false)}
@@ -75,7 +103,7 @@ function App() {
               Bokningar
             </Typography>
             {bookings.length ? (
-              bookings.map((booking) => (
+              bookings?.map((booking) => (
                 <div
                   key={booking.item.id}
                   style={{ margin: "14px 0px" }}
@@ -85,7 +113,7 @@ function App() {
                     Namn: {booking?.firstname} {booking?.lastname}
                   </Typography>
                   <Typography>
-                    Bokat datum: {booking?.date?.toLocaleDateString()}
+                    Bokat datum: {`${booking.date}`}
                   </Typography>
                   <Divider />
                 </div>
